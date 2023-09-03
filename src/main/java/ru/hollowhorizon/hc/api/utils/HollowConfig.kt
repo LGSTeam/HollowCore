@@ -42,11 +42,14 @@ annotation class HollowConfig(
     }
 
     object Serializer {
+        private val values: MutableList<IHollowConfig> = mutableListOf()
         private val gson: Gson = GsonBuilder().setPrettyPrinting().create()
-        private val value = this.getValues(IHollowConfig::class.java)
 
+        @Synchronized
         @JvmStatic
         fun start() {
+            this.addValues()
+
             val configDir = FMLPaths.CONFIGDIR.get().toFile()
             if (!configDir.exists()) configDir.mkdirs()
 
@@ -54,12 +57,14 @@ annotation class HollowConfig(
 
             var fileName = ""
 
-            if (this.value.getDist() == HollowConfigRuns.CLIENT) {
-                fileName = "client"
-            } else if (this.value.getDist() == HollowConfigRuns.COMMON) {
-                fileName = "common"
-            } else if (this.value.getDist() == HollowConfigRuns.SERVER) {
-                fileName = "server"
+            this.values.forEach { value ->
+                if (value.getDist() == HollowConfigRuns.CLIENT) {
+                    fileName = "client"
+                } else if (value.getDist() == HollowConfigRuns.COMMON) {
+                    fileName = "common"
+                } else if (value.getDist() == HollowConfigRuns.SERVER) {
+                    fileName = "server"
+                }
             }
 
             if (configFiles != null) {
@@ -88,103 +93,110 @@ annotation class HollowConfig(
             }
         }
 
+        @Synchronized
         private fun getConfigFields(): HashMap<Field, HollowConfig> {
             val fieldMap = hashMapOf<Field, HollowConfig>()
-            val clazz = value.javaClass
-            for (it in clazz.declaredFields) {
-                if (!it.isAnnotationPresent(HollowConfig::class.java)) continue
-                val annotation = it.getAnnotation(HollowConfig::class.java)
-                fieldMap[it] = annotation
+            this.values.forEach { clazz ->
+                for (it in clazz.javaClass.declaredFields) {
+                    if (!it.isAnnotationPresent(HollowConfig::class.java)) continue
+                    val annotation = it.getAnnotation(HollowConfig::class.java)
+                    fieldMap[it] = annotation
+                }
             }
+
             return fieldMap
         }
 
+        @Synchronized
         private fun serializeJson(): HashMap<String, JsonObject> {
             val fieldMap = this.getConfigFields()
             val configs = hashMapOf<String, JsonObject>()
 
-            fieldMap.forEach {
-                if ((isPhysicalClient || isLogicalClient) && (this.value.getDist() == HollowConfigRuns.SERVER)) return@forEach
-                else if ((isLogicalServer || isPhysicalServer) && (this.value.getDist() == HollowConfigRuns.CLIENT)) return@forEach
-                val field = it.key
-                val annotation = it.value
+            this.values.forEach { value ->
+                fieldMap.forEach fMap@ { maps ->
+                    if ((isPhysicalClient || isLogicalClient) && (value.getDist() == HollowConfigRuns.SERVER)) return@fMap
+                    else if ((isLogicalServer || isPhysicalServer) && (value.getDist() == HollowConfigRuns.CLIENT)) return@fMap
+                    val field = maps.key
+                    val annotation = maps.value
 
-                val cfg = configs.computeIfAbsent(this.value.getFileName()) { _ -> JsonObject() }
+                    val cfg = configs.computeIfAbsent(value.getFileName()) { _ -> JsonObject() }
 
-                val categoryObject: JsonObject
+                    val categoryObject: JsonObject
 
-                if (cfg.has(annotation.configPath)) {
-                    categoryObject = cfg.getAsJsonObject(annotation.configPath)
-                } else {
-                    categoryObject = JsonObject()
-                    cfg.add(annotation.configPath, categoryObject)
+                    if (cfg.has(annotation.configPath)) {
+                        categoryObject = cfg.getAsJsonObject(annotation.configPath)
+                    } else {
+                        categoryObject = JsonObject()
+                        cfg.add(annotation.configPath, categoryObject)
+                    }
+
+                    val key: String = annotation.value.ifEmpty { field.name }
+
+                    if (categoryObject.has(key)) throw UnsupportedOperationException("Some bad news.. Duplicate key found: $key")
+
+                    val fieldObject = JsonObject()
+
+                    fieldObject.addProperty("_comment", annotation.comment)
+
+                    val localValue: Any
+                    try {
+                        localValue = field.get(null)
+                    } catch (e: IllegalAccessException) {
+                        throw RuntimeException(e)
+                    }
+
+                    val element = gson.toJsonTree(localValue)
+                    fieldObject.add("value", element)
+                    categoryObject.add(key, fieldObject)
                 }
-
-                val key: String = annotation.value.ifEmpty { field.name }
-
-                if (categoryObject.has(key)) throw UnsupportedOperationException("Some bad news.. Duplicate key found: $key")
-
-                val fieldObject = JsonObject()
-
-                fieldObject.addProperty("_comment", annotation.comment)
-
-                val value: Any
-                try {
-                    value = field.get(null)
-                } catch (e: IllegalAccessException) {
-                    throw RuntimeException(e)
-                }
-
-                val element = gson.toJsonTree(value)
-                fieldObject.add("value", element)
-                categoryObject.add(key, fieldObject)
             }
 
             return configs
         }
 
+        @Synchronized
         private fun deserializeJson(configs: HashMap<String, JsonObject>) {
             val fieldMap = this.getConfigFields()
 
-            for (entry in fieldMap.entries) {
-                if ((isPhysicalClient || isLogicalClient) && (this.value.getDist() == HollowConfigRuns.SERVER)) break
-                else if ((isLogicalServer || isPhysicalServer) && (this.value.getDist() == HollowConfigRuns.CLIENT)) break
+            this.values.forEach { value ->
+                for (entry in fieldMap.entries) {
+                    if ((isPhysicalClient || isLogicalClient) && (value.getDist() == HollowConfigRuns.SERVER)) break
+                    else if ((isLogicalServer || isPhysicalServer) && (value.getDist() == HollowConfigRuns.CLIENT)) break
 
-                val field = entry.key
-                val annotation = entry.value
+                    val field = entry.key
+                    val annotation = entry.value
 
-                val config = configs[this.value.getFileName()] ?: continue
+                    val config = configs[value.getFileName()] ?: continue
 
-                val categoryObj = config.getAsJsonObject(annotation.configPath) ?: continue
+                    val categoryObj = config.getAsJsonObject(annotation.configPath) ?: continue
 
-                val key = field.name
-                if (!categoryObj.has(key)) continue
+                    val key = field.name
+                    if (!categoryObj.has(key)) continue
 
-                val fieldObj = categoryObj.get(key).asJsonObject
-                if (!fieldObj.has("value")) continue
+                    val fieldObj = categoryObj.get(key).asJsonObject
+                    if (!fieldObj.has("value")) continue
 
-                val jsonValue = fieldObj.get("value")
-                val fieldType = field.type
+                    val jsonValue = fieldObj.get("value")
+                    val fieldType = field.type
 
-                val fieldValue = gson.fromJson(jsonValue, fieldType)
+                    val fieldValue = gson.fromJson(jsonValue, fieldType)
 
-                try {
-                    field.set(null, fieldValue)
-                } catch (e: IllegalAccessException) {
-                    throw RuntimeException("Failed to set field value", e)
+                    try {
+                        field.set(null, fieldValue)
+                    } catch (e: IllegalAccessException) {
+                        throw RuntimeException("Failed to set field value", e)
+                    }
                 }
             }
         }
 
-        private fun <X> getValues(instance: Class<X>): X {
-            val classLoader = ServiceLoader.load(instance)
-            var clazz: X? = null
+        @Synchronized
+        private fun addValues() {
+            val classLoader = ServiceLoader.load(IHollowConfig::class.java)
 
             for (value in classLoader) {
-                clazz = value
+                this.values.add(value)
             }
-
-            return clazz!!
         }
     }
 
