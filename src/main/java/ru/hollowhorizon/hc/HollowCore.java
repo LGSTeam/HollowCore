@@ -17,7 +17,6 @@ import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.AddPackFindersEvent;
 import net.minecraftforge.event.RegisterCommandsEvent;
 import net.minecraftforge.event.entity.EntityAttributeCreationEvent;
-import net.minecraftforge.event.server.ServerStoppedEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
@@ -27,11 +26,9 @@ import net.minecraftforge.fml.loading.FMLEnvironment;
 import org.apache.logging.log4j.Logger;
 import ru.hollowhorizon.hc.api.registy.HollowMod;
 import ru.hollowhorizon.hc.api.utils.HollowConfig;
-import ru.hollowhorizon.hc.client.config.HollowCoreConfig;
 import ru.hollowhorizon.hc.client.gltf.model.GltfManager;
 import ru.hollowhorizon.hc.client.graphics.GPUMemoryManager;
 import ru.hollowhorizon.hc.client.handlers.ClientTickHandler;
-import ru.hollowhorizon.hc.client.render.OpenGLUtils;
 import ru.hollowhorizon.hc.client.render.entity.GLTFEntityRenderer;
 import ru.hollowhorizon.hc.client.utils.HollowKeyHandler;
 import ru.hollowhorizon.hc.client.utils.HollowPack;
@@ -46,13 +43,12 @@ import ru.hollowhorizon.hc.common.registry.ModEntities;
 import ru.hollowhorizon.hc.common.registry.ModShaders;
 import ru.hollowhorizon.hc.common.registry.RegistryLoader;
 
-
 @HollowMod(HollowCore.MODID)
 @Mod(HollowCore.MODID)
 public class HollowCore {
     public static final String MODID = "hc";
     public static final Logger LOGGER = LoggerLoader.createLogger("HollowLogger");
-    @HollowConfig(value = "general/debug_mode", description = "Enables debug mode, logs, and some more info for developers.")
+//    @HollowConfig(value = "general/debug_mode", description = "Enables debug mode, logs, and some more info for developers.")
     public static final boolean DEBUG_MODE = true;
 
     public HollowCore() {
@@ -98,7 +94,6 @@ public class HollowCore {
         forgeBus.addGenericListener(BlockEntity.class, CapabilityStorage::registerProvidersBlockEntity);
         forgeBus.addGenericListener(Level.class, CapabilityStorage::registerProvidersWorld);
         modBus.addListener(this::registerReloadListeners);
-        forgeBus.addListener(this::configSave);
 
         RegistryLoader.registerAll();
     }
@@ -132,7 +127,7 @@ public class HollowCore {
     //『Pre-Init』
     private void setup(final FMLCommonSetupEvent event) {
         NetworkHandler.register();
-
+        HollowConfig.Serializer.start();
     }
 
     private void onAttribute(EntityAttributeCreationEvent event) {
@@ -143,10 +138,6 @@ public class HollowCore {
     @OnlyIn(Dist.CLIENT)
     private void onRendererCreating(EntityRenderersEvent.RegisterRenderers event) {
         event.registerEntityRenderer(ModEntities.INSTANCE.getTEST_ENTITY().get(), GLTFEntityRenderer::new);
-    }
-
-    private void configSave(ServerStoppedEvent event) {
-        HollowCoreConfig.save();
     }
 
     //『Post-Init』

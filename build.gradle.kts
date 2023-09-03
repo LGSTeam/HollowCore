@@ -1,4 +1,3 @@
-import com.github.jengelman.gradle.plugins.shadow.relocation.SimpleRelocator
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 import net.minecraftforge.gradle.userdev.UserDevExtension
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
@@ -7,37 +6,29 @@ import java.time.format.DateTimeFormatter
 import net.minecraftforge.gradle.userdev.DependencyManagementExtension
 //^(.+)$(?=[\s\S]*^(\1)$[\s\S]*)
 buildscript {
-    repositories {
-        maven { url = uri("https://repo.spongepowered.org/repository/maven-public/") }
-        maven { url = uri("https://maven.parchmentmc.org") }
-        mavenCentral()
-    }
     dependencies {
-        //classpath("net.minecraftforge.gradle:ForgeGradle:5+") { isChanging = true }
-        classpath("org.parchmentmc:librarian:1.+")
         classpath("org.spongepowered:mixingradle:0.7.38")
-        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:1.9.0")
         classpath("com.github.johnrengelman:shadow:8+")
     }
 }
 
+val kotlinVersion: String by project
+
 plugins {
+    kotlin("jvm")
+    kotlin("plugin.serialization")
     id("net.minecraftforge.gradle") version "[6.0,6.2)"
-    id("org.jetbrains.kotlin.jvm").version("1.9.0")
-    id("org.jetbrains.kotlin.plugin.serialization").version("1.9.0")
+    id("org.parchmentmc.librarian.forgegradle") version "1.+"
+    `maven-publish`
 }
 
 apply {
-    plugin("kotlin")
-    plugin("maven-publish")
-    plugin("net.minecraftforge.gradle")
     plugin("org.spongepowered.mixin")
-    plugin("org.parchmentmc.librarian.forgegradle")
     plugin("com.github.johnrengelman.shadow")
 }
 
 group = "ru.hollowhorizon"
-version = "1.1.0"
+version = "1.2.0"
 project.setProperty("archivesBaseName", "hc")
 
 java {
@@ -97,26 +88,27 @@ dependencies {
     val minecraft = configurations["minecraft"]
     val shadow = configurations["shadow"]
     val fg = project.extensions.findByType(DependencyManagementExtension::class.java)!!
-
+    val coroutinesVersion: String by project
+    val serializationVersion: String by project
     minecraft("net.minecraftforge:forge:1.19.2-43.2.21")
 
     annotationProcessor("org.spongepowered:mixin:0.8.5:processor")
 
-    shadow("org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.9.0")
-    shadow("org.jetbrains.kotlin:kotlin-stdlib-common:1.9.0")
+    shadow("org.jetbrains.kotlin:kotlin-stdlib-jdk8:${kotlin.coreLibrariesVersion}")
+    shadow("org.jetbrains.kotlin:kotlin-stdlib-common:${kotlin.coreLibrariesVersion}")
 
-    shadow("org.jetbrains.kotlin:kotlin-scripting-jvm-host:1.9.0")
-    shadow("org.jetbrains.kotlin:kotlin-scripting-jvm:1.9.0")
+    shadow("org.jetbrains.kotlin:kotlin-scripting-jvm-host:${kotlin.coreLibrariesVersion}")
+    shadow("org.jetbrains.kotlin:kotlin-scripting-jvm:${kotlin.coreLibrariesVersion}")
 
-    shadow("org.jetbrains.kotlin:kotlin-scripting-compiler-embeddable:1.9.0")
-    shadowCompileOnly("org.jetbrains.kotlin:kotlin-compiler-embeddable:1.9.0")
+    shadow("org.jetbrains.kotlin:kotlin-scripting-compiler-embeddable:${kotlin.coreLibrariesVersion}")
+    shadowCompileOnly("org.jetbrains.kotlin:kotlin-compiler-embeddable:${kotlin.coreLibrariesVersion}")
 
-    shadow("org.jetbrains.kotlin:kotlin-script-runtime:1.9.0")
+    shadow("org.jetbrains.kotlin:kotlin-script-runtime:${kotlin.coreLibrariesVersion}")
 
-    shadow("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4")
-    shadow("org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.6.4")
-    shadow("org.jetbrains.kotlinx:kotlinx-coroutines-jdk8:1.6.4")
-    shadow("org.jetbrains.kotlinx:kotlinx-serialization-core:1.5.0")
+    shadow("org.jetbrains.kotlinx:kotlinx-coroutines-core:${coroutinesVersion}")
+    shadow("org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:${coroutinesVersion}")
+    shadow("org.jetbrains.kotlinx:kotlinx-coroutines-jdk8:${coroutinesVersion}")
+    shadow("org.jetbrains.kotlinx:kotlinx-serialization-core:${serializationVersion}")
     shadow("com.esotericsoftware:kryo:5.4.0")
 
     shadow("trove:trove:1.0.2")
@@ -126,8 +118,6 @@ val copyJar by tasks.registering(Copy::class) {
     from("build/libs/hc-1.1.0.jar")
     into("C:\\Users\\user\\Twitch\\Minecraft\\Instances\\Instances\\test1\\mods")
 }
-
-
 
 val library = configurations.create("library")
 
@@ -196,4 +186,3 @@ tasks.getByName<Jar>("jar") {
 
     finalizedBy("reobfJar")
 }
-

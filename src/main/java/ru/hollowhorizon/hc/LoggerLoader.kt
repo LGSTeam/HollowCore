@@ -5,12 +5,12 @@ import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger
 import org.apache.logging.log4j.core.config.Configurator
 import org.apache.logging.log4j.core.config.builder.api.ConfigurationBuilderFactory
-
+import ru.hollowhorizon.hc.config.HollowCoreCommonConfig
 
 object LoggerLoader {
     @JvmStatic
     fun createLogger(name: String): Logger {
-        val lvl = if (HollowCore.DEBUG_MODE) Level.ALL else Level.ERROR
+        val lvl = if (HollowCoreCommonConfig.debugMode) Level.ALL else Level.ERROR
         val builder = ConfigurationBuilderFactory.newConfigurationBuilder()
         builder.setStatusLevel(lvl)
         builder.setConfigurationName(name)

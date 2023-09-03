@@ -20,7 +20,7 @@ import ru.hollowhorizon.hc.common.capabilities.CapabilityInstance;
 import ru.hollowhorizon.hc.common.capabilities.CapabilityStorage;
 
 public class HollowEventHandler {
-    @HollowConfig("enable_blur")
+//    @HollowConfig("enable_blur")
     public static boolean ENABLE_BLUR = true;
 
     public void init() {

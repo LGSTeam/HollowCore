@@ -12,6 +12,7 @@ import ru.hollowhorizon.hc.client.screens.util.IPlacement
 import ru.hollowhorizon.hc.client.screens.widget.HorizontalSliderWidget
 import ru.hollowhorizon.hc.client.screens.widget.OriginWidget
 import ru.hollowhorizon.hc.client.screens.widget.VerticalSliderWidget
+import ru.hollowhorizon.hc.config.HollowCoreCommonConfig
 
 class BoxWidget(
     x: Int,
@@ -59,7 +60,7 @@ class BoxWidget(
 
         super.renderButton(stack, mouseX, mouseY, ticks)
 
-        if (!HollowCore.DEBUG_MODE) {
+        if (!HollowCoreCommonConfig.debugMode) {
             //box
             DrawUtils.drawBounds(
                 stack, this.x, this.y, this.x + this.width, this.y + this.height, 1, 0xFFFFFFFF.toInt()

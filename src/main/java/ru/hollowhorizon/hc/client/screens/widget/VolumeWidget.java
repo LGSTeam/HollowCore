@@ -2,14 +2,11 @@ package ru.hollowhorizon.hc.client.screens.widget;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
-import net.minecraft.client.renderer.texture.TextureManager;
 import net.minecraft.client.sounds.SoundManager;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
-import ru.hollowhorizon.hc.client.config.HollowCoreConfig;
+import ru.hollowhorizon.hc.config.HollowCoreClientConfig;
 
 import static ru.hollowhorizon.hc.HollowCore.MODID;
 
@@ -105,7 +102,7 @@ public class VolumeWidget extends HollowWidget {
             this.width = width;
             this.height = height;
 
-            setPos((int) ((this.width - this.width / 4) * HollowCoreConfig.dialogues_volume * 100) + this.x + this.width / 4);
+            setPos((int) ((this.width - this.width / 4) * HollowCoreClientConfig.dialogues_volume * 100) + this.x + this.width / 4);
         }
 
         public float getPos() {
