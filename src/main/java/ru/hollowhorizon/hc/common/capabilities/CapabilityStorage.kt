@@ -2,7 +2,6 @@
 
 package ru.hollowhorizon.hc.common.capabilities
 
-import dev.ftb.mods.ftbteams.data.Team
 import net.minecraft.resources.ResourceLocation
 import net.minecraft.world.entity.Entity
 import net.minecraft.world.level.Level
@@ -35,9 +34,6 @@ object CapabilityStorage {
 
     @JvmStatic
     fun registerProvidersWorld(event: AttachCapabilitiesEvent<Level>) = event.initCapabilities()
-
-    @JvmStatic
-    fun registerProvidersTeam(event: AttachCapabilitiesEvent<Team>) = event.initCapabilities()
 
 
     private fun <T> AttachCapabilitiesEvent<T>.initCapabilities() {

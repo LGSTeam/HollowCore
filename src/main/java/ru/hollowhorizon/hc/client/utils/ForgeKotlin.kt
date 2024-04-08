@@ -2,7 +2,6 @@ package ru.hollowhorizon.hc.client.utils
 
 import com.mojang.blaze3d.systems.RenderSystem
 import com.mojang.blaze3d.vertex.PoseStack
-import dev.ftb.mods.ftbteams.data.TeamBase
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap
 import net.irisshaders.iris.api.v0.IrisApi
 import net.minecraft.client.Minecraft
@@ -55,8 +54,6 @@ operator fun <T : CapabilityInstance> ICapabilityProvider.get(capability: KClass
         .orElseThrow { IllegalStateException("Capability ${capability.simpleName} not found!") } as T
 
 operator fun <T : CapabilityInstance> ICapabilityProvider.get(capability: Class<T>) = get(capability.kotlin)
-
-fun <T : CapabilityInstance> TeamBase.capability(capability: KClass<T>) = (this as ICapabilityProvider)[capability]
 
 val String.rl get() = ResourceLocation(this)
 

@@ -1,6 +1,5 @@
 package ru.hollowhorizon.hc.common.capabilities
 
-import dev.ftb.mods.ftbteams.data.Team
 import net.minecraft.core.Direction
 import net.minecraft.nbt.CompoundTag
 import net.minecraft.nbt.ListTag
@@ -33,19 +32,6 @@ open class CapabilityInstance : ICapabilitySerializable<Tag> {
 
 
     fun sync() {
-        if (ModList.get().isLoaded("ftbteams")) {
-            val target = provider
-            if (target is Team) {
-                target.save()
-                target.onlineMembers.forEach {
-                    CSyncTeamCapabilityPacket(
-                        capability.name,
-                        serializeNBT()
-                    ).send(PacketDistributor.PLAYER.with { it })
-                }
-            }
-        }
-
         when (val target = provider) {
             is Entity -> {
                 val isPlayer = target is Player

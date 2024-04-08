@@ -13,8 +13,6 @@
     "ListTagAccessor",
     "PrimaryLevelDataMixin",
     "StructureBlockMixin",
-    "ftbteams.AbstractTeamMixin",
-    "ftbteams.TeamMixin",
     "particles.MixinResourceLocation"
   ],
   "client": [

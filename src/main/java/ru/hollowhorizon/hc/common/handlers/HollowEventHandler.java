@@ -1,6 +1,5 @@
 package ru.hollowhorizon.hc.common.handlers;
 
-import dev.ftb.mods.ftbteams.FTBTeamsAPI;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.locale.Language;
 import net.minecraft.network.chat.Component;
@@ -11,19 +10,16 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.client.event.InputEvent;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.capabilities.Capability;
-import net.minecraftforge.common.capabilities.ICapabilityProvider;
 import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.event.entity.player.ItemTooltipEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.ModList;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import net.minecraftforge.fml.loading.FMLEnvironment;
 import org.lwjgl.glfw.GLFW;
 import ru.hollowhorizon.hc.HollowCore;
 import ru.hollowhorizon.hc.client.screens.ImGuiScreen;
-import ru.hollowhorizon.hc.client.screens.widget.layout.BoxExampleKt;
 import ru.hollowhorizon.hc.client.utils.ForgeKotlinKt;
 import ru.hollowhorizon.hc.common.capabilities.CapabilityInstance;
 import ru.hollowhorizon.hc.common.capabilities.CapabilityStorage;
@@ -106,12 +102,6 @@ public class HollowEventHandler {
         //update capabilities on clients
         for (Capability<CapabilityInstance> cap : CapabilityStorage.INSTANCE.getCapabilitiesForPlayer()) {
             player.getCapability(cap).ifPresent(CapabilityInstance::sync);
-        }
-
-        if (ModList.get().isLoaded("ftbteams")) {
-            for (Capability<?> cap : CapabilityStorage.INSTANCE.getTeamCapabilities()) {
-                ((ICapabilityProvider) FTBTeamsAPI.getPlayerTeam(player)).getCapability((Capability<CapabilityInstance>) cap).ifPresent(CapabilityInstance::sync);
-            }
         }
     }
 }
